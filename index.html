@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo EXIF Viewer - Extract Metadata from Your Photos</title>
+    <meta name="description" content="Upload your photos to view detailed EXIF data including camera settings, location, and more. Free online tool.">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background-color: #4285f4;
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+        }
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            padding: 30px;
+            text-align: center;
+            margin: 30px 0;
+            cursor: pointer;
+        }
+        .upload-area:hover {
+            border-color: #4285f4;
+        }
+        #fileInput {
+            display: none;
+        }
+        .btn {
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background-color: #3367d6;
+        }
+        .ad-container {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            text-align: center;
+        }
+        footer {
+            background-color: #f5f5f5;
+            padding: 20px;
+            text-align: center;
+            margin-top: 30px;
+        }
+        #exifResults {
+            display: none;
+            margin-top: 30px;
+        }
+        .exif-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .exif-table th, .exif-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .exif-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        #previewImage {
+            max-width: 100%;
+            max-height: 300px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Photo EXIF Viewer</h1>
+            <p>Upload your photos to view detailed EXIF metadata</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Ad Banner Top -->
+        <div class="ad-container">
+            <!-- Google AdSense or other ad code -->
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+            crossorigin="anonymous"></script>
+            <ins class="adsbygoogle"
+                style="display:block"
+                data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                data-ad-slot="XXXXXXXXXX"
+                data-ad-format="auto"
+                data-full-width-responsive="true"></ins>
+            <script>
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
+
+        <div class="upload-area" id="uploadArea">
+            <h2>Drag & Drop Your Photo Here</h2>
+            <p>or</p>
+            <button class="btn" id="uploadBtn">Select Photo</button>
+            <input type="file" id="fileInput" accept="image/*">
+        </div>
+
+        <div id="previewContainer" style="display: none;">
+            <h3>Image Preview</h3>
+            <img id="previewImage" src="" alt="Preview">
+        </div>
+
+        <div id="exifResults">
+            <h2>EXIF Data</h2>
+            <table class="exif-table">
+                <thead>
+                    <tr>
+                        <th>Property</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody id="exifTableBody">
+                    <!-- EXIF data will be populated here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Ad Banner Middle -->
+        <div class="ad-container">
+            <!-- Another ad unit -->
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+            crossorigin="anonymous"></script>
+            <ins class="adsbygoogle"
+                style="display:block"
+                data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                data-ad-slot="XXXXXXXXXX"
+                data-ad-format="auto"
+                data-full-width-responsive="true"></ins>
+            <script>
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
+
+        <div class="info-section">
+            <h2>What is EXIF Data?</h2>
+            <p>EXIF (Exchangeable Image File Format) data is metadata stored in image files captured by digital cameras and smartphones. It includes information like:</p>
+            <ul>
+                <li>Camera make and model</li>
+                <li>Date and time the photo was taken</li>
+                <li>Shutter speed, aperture, ISO</li>
+                <li>Focal length</li>
+                <li>GPS coordinates (if location services were enabled)</li>
+                <li>And much more</li>
+            </ul>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2023 Photo EXIF Viewer. All rights reserved.</p>
+            <p><a href="/privacy">Privacy Policy</a> | <a href="/terms">Terms of Service</a></p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const previewContainer = document.getElementById('previewContainer');
+            const previewImage = document.getElementById('previewImage');
+            const exifResults = document.getElementById('exifResults');
+            const exifTableBody = document.getElementById('exifTableBody');
+
+            // Handle click on upload area
+            uploadArea.addEventListener('click', function() {
+                fileInput.click();
+            });
+
+            uploadBtn.addEventListener('click', function() {
+                fileInput.click();
+            });
+
+            // Handle file selection
+            fileInput.addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    processImage(e.target.files[0]);
+                }
+            });
+
+            // Handle drag and drop
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#4285f4';
+                uploadArea.style.backgroundColor = '#f0f7ff';
+            });
+
+            uploadArea.addEventListener('dragleave', function() {
+                uploadArea.style.borderColor = '#ccc';
+                uploadArea.style.backgroundColor = '';
+            });
+
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#ccc';
+                uploadArea.style.backgroundColor = '';
+
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    processImage(e.dataTransfer.files[0]);
+                }
+            });
+
+            // Process the image and extract EXIF data
+            function processImage(file) {
+                // Check if file is an image
+                if (!file.type.match('image.*')) {
+                    alert('Please select an image file (JPEG, PNG, etc.)');
+                    return;
+                }
+
+                // Display preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    previewContainer.style.display = 'block';
+
+                    // Extract EXIF data
+                    EXIF.getData(file, function() {
+                        const allExifData = EXIF.getAllTags(this);
+                        displayExifData(allExifData);
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+
+            // Display EXIF data in the table
+            function displayExifData(exifData) {
+                exifTableBody.innerHTML = '';
+                
+                if (!exifData || Object.keys(exifData).length === 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td colspan="2">No EXIF data found in this image</td>';
+                    exifTableBody.appendChild(row);
+                } else {
+                    for (const [key, value] of Object.entries(exifData)) {
+                        const row = document.createElement('tr');
+                        
+                        const keyCell = document.createElement('td');
+                        keyCell.textContent = key;
+                        
+                        const valueCell = document.createElement('td');
+                        // Handle GPS data specially
+                        if (key === 'GPSLatitude' || key === 'GPSLongitude') {
+                            valueCell.textContent = EXIF.getTag(this, key) + ' ' + EXIF.getTag(this, key + 'Ref');
+                        } else {
+                            valueCell.textContent = formatExifValue(key, value);
+                        }
+                        
+                        row.appendChild(keyCell);
+                        row.appendChild(valueCell);
+                        exifTableBody.appendChild(row);
+                    }
+                }
+                
+                exifResults.style.display = 'block';
+            }
+
+            // Format EXIF values for display
+            function formatExifValue(key, value) {
+                // Handle date/time
+                if (key === 'DateTime' || key === 'DateTimeOriginal' || key === 'DateTimeDigitized') {
+                    return value.replace(/^(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):(\d{2})$/, '$1-$2-$3 $4:$5:$6');
+                }
+                
+                // Handle arrays
+                if (Array.isArray(value)) {
+                    return value.join(', ');
+                }
+                
+                return value;
+            }
+        });
+    </script>
+</body>
+</html>
